@@ -1,6 +1,7 @@
 package org.matrix.vector.legacy;
 
 import android.content.res.XResources;
+import android.util.Log;
 
 import org.lsposed.lspd.util.Utils;
 import org.matrix.vector.impl.core.VectorServiceClient;
@@ -27,6 +28,8 @@ import de.robv.android.xposed.callbacks.XC_LoadPackage;
  * Translates modern lifecycle events and hooks into legacy Xposed API operations.
  */
 public class LegacyDelegateImpl implements LegacyFrameworkDelegate {
+
+    private static final String TAG = "VectorLegacyDelegate";
 
     @Override
     public void loadModules(Object activityThread) {
@@ -123,7 +126,7 @@ public class LegacyDelegateImpl implements LegacyFrameworkDelegate {
             }
             xposedsharedprefs = metaData.containsKey("xposedsharedprefs");
         } catch (NumberFormatException | IOException e) {
-            XposedBridge.log(e);
+            Log.w(TAG, "hookNewXSP: failed to read metadata for " + lpparam.packageName, e);
         }
 
         if (xposedminversion > 92 || xposedsharedprefs) {
