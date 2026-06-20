@@ -1,6 +1,7 @@
 package org.matrix.vector.daemon.data
 
 import android.content.pm.ApplicationInfo
+import android.content.pm.PackageManager
 import android.content.pm.PackageParser
 import android.system.Os
 import android.util.Log
@@ -385,8 +386,17 @@ object ConfigCache {
                   module.applicationInfo = pkg.applicationInfo
                 }
                 .onFailure {
-                  Log.w(TAG, "PackageParser failed for $apkPath: ${it.message}, using fallback ApplicationInfo")
-                  module.applicationInfo = ApplicationInfo().apply { packageName = pkgName }
+                  val appInfo = runCatching {
+                        packageManager?.getApplicationInfo(pkgName, PackageManager.GET_META_DATA, 0)
+                      }
+                      .getOrNull()
+                  if (appInfo != null) {
+                    Log.w(TAG, "PackageParser failed for $apkPath: ${it.message}, using PackageManager fallback")
+                    module.applicationInfo = appInfo
+                  } else {
+                    Log.w(TAG, "PackageParser failed for $apkPath: ${it.message}, using fallback ApplicationInfo")
+                    module.applicationInfo = ApplicationInfo().apply { packageName = pkgName }
+                  }
                 }
 
             // Always apply the critical paths manually, even on fallback

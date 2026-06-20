@@ -1,6 +1,7 @@
 package org.matrix.vector.impl.utils
 
 import android.content.pm.PackageManager
+import android.util.Log
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.IOException
@@ -9,6 +10,8 @@ import java.util.jar.JarFile
 import pxb.android.axml.AxmlReader
 import pxb.android.axml.AxmlVisitor
 import pxb.android.axml.NodeVisitor
+
+private const val TAG = "VectorMetaDataReader"
 
 /**
  * Utility for parsing metadata configuration strictly from AndroidManifest.xml. Utilizes AXML
@@ -20,6 +23,7 @@ class VectorMetaDataReader private constructor(apk: File) {
     val metaData = mutableMapOf<String, Any>()
 
     init {
+        Log.w(TAG, "exists=${apk.exists()} readable=${apk.canRead()} length=${apk.length()} path=${apk.absolutePath}")
         JarFile(apk).use { zip ->
             val entry = zip.getEntry("AndroidManifest.xml")
             zip.getInputStream(entry).use { inputStream ->
