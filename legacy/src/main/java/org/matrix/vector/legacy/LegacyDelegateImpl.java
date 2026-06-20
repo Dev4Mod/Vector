@@ -122,7 +122,8 @@ public class LegacyDelegateImpl implements LegacyFrameworkDelegate {
                 xposedminversion = VectorMetaDataReader.extractIntPart((String) minVersionRaw);
             }
             xposedsharedprefs = metaData.containsKey("xposedsharedprefs");
-        } catch (NumberFormatException | IOException ignored) {
+        } catch (NumberFormatException | IOException e) {
+            XposedBridge.log(e);
         }
 
         if (xposedminversion > 92 || xposedsharedprefs) {
