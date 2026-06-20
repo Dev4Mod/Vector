@@ -385,7 +385,7 @@ object ConfigCache {
                   module.applicationInfo = pkg.applicationInfo
                 }
                 .onFailure {
-                  Log.w(TAG, "PackageParser failed for $apkPath, using fallback ApplicationInfo")
+                  Log.w(TAG, "PackageParser failed for $apkPath: ${it.message}, using fallback ApplicationInfo")
                   module.applicationInfo = ApplicationInfo().apply { packageName = pkgName }
                 }
 
