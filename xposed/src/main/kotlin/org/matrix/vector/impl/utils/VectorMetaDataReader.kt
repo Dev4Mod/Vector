@@ -1,5 +1,6 @@
 package org.matrix.vector.impl.utils
 
+import android.content.pm.PackageManager
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.IOException
@@ -82,6 +83,17 @@ class VectorMetaDataReader private constructor(apk: File) {
         @Throws(IOException::class)
         fun getMetaData(apk: File): Map<String, Any> {
             return VectorMetaDataReader(apk).metaData
+        }
+
+        @JvmStatic
+        fun getMetaData(packageManager: PackageManager, packageName: String): Map<String, Any> {
+            val ai = packageManager.getApplicationInfo(packageName, PackageManager.GET_META_DATA)
+            val bundle = ai.metaData ?: return emptyMap()
+            val result = mutableMapOf<String, Any>()
+            for (key in bundle.keySet()) {
+                bundle.get(key)?.let { result[key] = it }
+            }
+            return result
         }
 
         @Throws(IOException::class)

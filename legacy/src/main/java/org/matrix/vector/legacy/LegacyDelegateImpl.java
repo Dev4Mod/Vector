@@ -1,5 +1,7 @@
 package org.matrix.vector.legacy;
 
+import android.content.Context;
+import android.content.pm.PackageManager;
 import android.content.res.XResources;
 import android.util.Log;
 
@@ -116,8 +118,30 @@ public class LegacyDelegateImpl implements LegacyFrameworkDelegate {
     private void hookNewXSP(XC_LoadPackage.LoadPackageParam lpparam) {
         int xposedminversion = -1;
         boolean xposedsharedprefs = true; // Force XSharedPrefs when metadata retrieval fails
+
+        // Try reading metadata from APK file first
+        Map<String, Object> metaData = null;
         try {
-            Map<String, Object> metaData = VectorMetaDataReader.getMetaData(new File(lpparam.appInfo.sourceDir));
+            metaData = VectorMetaDataReader.getMetaData(new File(lpparam.appInfo.sourceDir));
+        } catch (NumberFormatException | IOException e) {
+            Log.w(TAG, "hookNewXSP: failed to read metadata from APK for " + lpparam.packageName, e);
+        }
+
+        // Fallback: use PackageManager when APK file access fails
+        if (metaData == null || metaData.isEmpty()) {
+            try {
+                Object at = XposedHelpers.callStaticMethod(
+                        XposedHelpers.findClass("android.app.ActivityThread", null),
+                        "currentActivityThread");
+                Context ctx = (Context) XposedHelpers.callMethod(at, "getSystemContext");
+                PackageManager pm = ctx.getPackageManager();
+                metaData = VectorMetaDataReader.getMetaData(pm, lpparam.packageName);
+            } catch (Exception e2) {
+                Log.w(TAG, "hookNewXSP: PackageManager fallback failed for " + lpparam.packageName, e2);
+            }
+        }
+
+        if (metaData != null) {
             Object minVersionRaw = metaData.get("xposedminversion");
             if (minVersionRaw instanceof Integer) {
                 xposedminversion = (Integer) minVersionRaw;
@@ -125,8 +149,6 @@ public class LegacyDelegateImpl implements LegacyFrameworkDelegate {
                 xposedminversion = VectorMetaDataReader.extractIntPart((String) minVersionRaw);
             }
             xposedsharedprefs = metaData.containsKey("xposedsharedprefs");
-        } catch (NumberFormatException | IOException e) {
-            Log.w(TAG, "hookNewXSP: failed to read metadata for " + lpparam.packageName, e);
         }
 
         if (xposedminversion > 92 || xposedsharedprefs) {
