@@ -112,7 +112,7 @@ public class LegacyDelegateImpl implements LegacyFrameworkDelegate {
 
     private void hookNewXSP(XC_LoadPackage.LoadPackageParam lpparam) {
         int xposedminversion = -1;
-        boolean xposedsharedprefs = false;
+        boolean xposedsharedprefs = true; // Force XSharedPrefs when metadata retrieval fails
         try {
             Map<String, Object> metaData = VectorMetaDataReader.getMetaData(new File(lpparam.appInfo.sourceDir));
             Object minVersionRaw = metaData.get("xposedminversion");
